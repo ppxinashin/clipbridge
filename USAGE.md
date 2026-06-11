@@ -1,5 +1,26 @@
 # ClipBridge 使用说明
 
+## 安装发布版
+
+请只从 [ClipBridge GitHub Releases](https://github.com/ppxinashin/clipbridge/releases) 下载安装包。
+
+### macOS Apple 芯片
+
+下载 `ClipBridge_*_aarch64.dmg`，打开后将 `ClipBridge.app` 拖入“应用程序”文件夹。
+
+由于当前版本尚未进行 Apple Developer ID 签名和公证，macOS 可能提示“ClipBridge 已损坏，无法打开”。确认文件来自上述官方 Release 后，在终端执行：
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/ClipBridge.app"
+open "/Applications/ClipBridge.app"
+```
+
+这只解除 ClipBridge 的下载隔离，不会禁用系统的 Gatekeeper。后续版本完成 Apple 签名和公证后将不再需要此步骤。
+
+### Windows x64
+
+下载 Release 中的 `.msi` 或 `.exe` 文件并按安装向导操作。若 SmartScreen 提示未知发布者，请先确认文件来自本项目的 GitHub Releases，再选择“更多信息”与“仍要运行”。
+
 ## 启动桌面程序
 
 在项目根目录安装依赖并启动开发版：

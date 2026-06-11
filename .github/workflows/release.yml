@@ -56,7 +56,16 @@ jobs:
             - Markdown 便签与图片支持
             - macOS 菜单栏和 Windows 系统托盘
 
-            下载对应平台的安装包即可使用。
+            **macOS 安装提示**
+
+            当前版本尚未进行 Apple Developer ID 签名和公证。如果系统提示“ClipBridge 已损坏，无法打开”，请确认安装包来自本 Release，将应用拖入“应用程序”后执行：
+
+            ```bash
+            xattr -dr com.apple.quarantine "/Applications/ClipBridge.app"
+            open "/Applications/ClipBridge.app"
+            ```
+
+            该命令只解除 ClipBridge 的下载隔离，不会关闭 macOS 的全局安全保护。
           releaseDraft: false
           prerelease: false
           generateReleaseNotes: true
