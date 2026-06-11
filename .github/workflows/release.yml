@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            args: --target aarch64-apple-darwin
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            args: --target x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build and publish
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: ClipBridge v__VERSION__
+          releaseBody: |
+            ClipBridge 0.1.0 首个桌面版本。
+
+            - Material Design 3 界面、暗黑模式与可调主题色
+            - Option/Alt + V 呼出剪贴板历史
+            - Markdown 便签与图片支持
+            - macOS 菜单栏和 Windows 系统托盘
+
+            下载对应平台的安装包即可使用。
+          releaseDraft: false
+          prerelease: false
+          generateReleaseNotes: true
+          uploadWorkflowArtifacts: true
+          releaseAssetNamePattern: ClipBridge_[version]_[platform]_[arch]_[bundle][ext]
+          args: ${{ matrix.args }}
