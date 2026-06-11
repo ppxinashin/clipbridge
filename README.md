@@ -199,4 +199,4 @@ npm run build        # TypeScript 类型检查 + 构建
 
 ## 许可证
 
-[MIT](LICENSE)
+[Apache License 2.0](LICENSE)
