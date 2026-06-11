@@ -50,13 +50,17 @@ fn main() {
             log::info!("Tauri setup completed");
             Ok(())
         })
-        .on_window_event(|window, event| {
-            if let WindowEvent::Focused(is_focused) = event {
-                if !is_focused && window.label() == "clipboard" {
-                    // Hide clipboard window when it loses focus
-                    let _ = window.hide();
-                }
+        .on_window_event(|window, event| match event {
+            WindowEvent::CloseRequested { api, .. }
+                if window.label() == "main" || window.label() == "clipboard" =>
+            {
+                api.prevent_close();
+                let _ = window.hide();
             }
+            WindowEvent::Focused(false) if window.label() == "clipboard" => {
+                let _ = window.hide();
+            }
+            _ => {}
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_clipboard_history,

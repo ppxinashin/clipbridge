@@ -10,13 +10,13 @@ import python from "highlight.js/lib/languages/python";
 import rust from "highlight.js/lib/languages/rust";
 import typescript from "highlight.js/lib/languages/typescript";
 import xml from "highlight.js/lib/languages/xml";
-import "highlight.js/styles/github.css";
 import { Note } from "../context/AppContext";
 import { useApp } from "../context/AppContext";
 import {
   Bold,
   Clock,
   Code2,
+  FilePenLine,
   ImagePlus,
   Italic,
   Link,
@@ -61,13 +61,13 @@ marked.setOptions({
 });
 
 const PRESET_COLORS = [
-  { name: "无", value: null, class: "bg-white" },
-  { name: "黄", value: "#fef3c7", class: "bg-yellow-100" },
-  { name: "绿", value: "#d1fae5", class: "bg-green-100" },
-  { name: "蓝", value: "#dbeafe", class: "bg-blue-100" },
-  { name: "紫", value: "#f3e8ff", class: "bg-purple-100" },
-  { name: "红", value: "#fee2e2", class: "bg-red-100" },
-  { name: "灰", value: "#f3f4f6", class: "bg-gray-100" },
+  { name: "无", value: null },
+  { name: "黄", value: "#fef3c7" },
+  { name: "绿", value: "#d1fae5" },
+  { name: "蓝", value: "#dbeafe" },
+  { name: "紫", value: "#f3e8ff" },
+  { name: "红", value: "#fee2e2" },
+  { name: "灰", value: "#f3f4f6" },
 ];
 
 export default function NoteEditor({ note }: NoteEditorProps) {
@@ -219,73 +219,111 @@ export default function NoteEditor({ note }: NoteEditorProps) {
 
   if (!note) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
-        <div className="text-center text-gray-400">
-          <p>选择一个便签开始编辑</p>
-          <p className="text-sm mt-1">或点击左侧「新建便签」</p>
+      <section
+        className="flex min-w-0 flex-1 items-center justify-center"
+        style={{ background: "var(--md-surface)" }}
+      >
+        <div className="max-w-xs text-center">
+          <div
+            className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full"
+            style={{
+              background: "var(--md-primary-container)",
+              color: "var(--md-on-primary-container)",
+            }}
+          >
+            <FilePenLine className="h-9 w-9" />
+          </div>
+          <p className="text-lg font-semibold">选择一个便签</p>
+          <p
+            className="mt-2 text-sm"
+            style={{ color: "var(--md-on-surface-variant)" }}
+          >
+            从列表中选择便签，或创建新的便签开始记录
+          </p>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col min-w-0">
-      {/* Toolbar */}
-      <div className="px-6 py-3 border-b border-gray-200 bg-white">
-        <div className="flex items-center gap-4">
-          {/* Title input */}
+    <section
+      className="flex min-w-0 flex-1 flex-col"
+      style={{ background: "var(--md-surface)" }}
+    >
+      <header
+        className="border-b px-6 pb-3 pt-5"
+        style={{ borderColor: "var(--md-outline-variant)" }}
+      >
+        <div className="flex min-w-0 items-center gap-4">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="便签标题"
-            className="flex-1 text-lg font-semibold outline-none placeholder-gray-300"
+            className="min-w-0 flex-1 bg-transparent text-2xl font-semibold outline-none"
+            style={{ color: "var(--md-on-surface)" }}
           />
 
-          {/* Color selector */}
-          <div className="flex items-center gap-1">
+          <div
+            className="flex items-center gap-2 rounded-full px-2 py-1.5"
+            style={{ background: "var(--md-surface-container)" }}
+          >
             {PRESET_COLORS.map((c) => (
               <button
                 key={c.name}
                 onClick={() => setColor(c.value)}
-                className={`w-5 h-5 rounded-full ${c.class} border-2 ${
-                  color === c.value ? "border-gray-800" : "border-transparent"
-                }`}
+                className="h-5 w-5 rounded-full transition-transform hover:scale-110"
+                style={{
+                  background: c.value || "var(--md-surface)",
+                  boxShadow:
+                    color === c.value
+                      ? "0 0 0 2px var(--md-surface-container), 0 0 0 4px var(--md-primary)"
+                      : "0 0 0 1px var(--md-outline-variant)",
+                }}
                 title={c.name}
               />
             ))}
           </div>
 
-          {/* Save status */}
-          <div className="flex items-center gap-1 text-xs text-gray-400">
+          <div
+            className="flex min-w-[112px] items-center justify-end gap-1.5 text-xs"
+            style={{ color: "var(--md-on-surface-variant)" }}
+          >
             {isSaving ? (
               <>
-                <Save className="w-3.5 h-3.5 animate-pulse" />
+                <Save className="h-4 w-4 animate-pulse" />
                 <span>保存中...</span>
               </>
             ) : lastSaved ? (
               <>
-                <Clock className="w-3.5 h-3.5" />
+                <Clock className="h-4 w-4" />
                 <span>
-                  已保存 {lastSaved.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
+                  {lastSaved.toLocaleTimeString("zh-CN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </span>
               </>
             ) : null}
           </div>
         </div>
 
-        {/* Tags input */}
-        <div className="mt-2">
+        <div className="mt-3 flex items-center gap-3">
           <input
             type="text"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            placeholder="标签，用逗号分隔 (例如: 工作, 灵感, 重要)"
-            className="w-full text-sm text-gray-600 outline-none placeholder-gray-300"
+            placeholder="添加标签，用逗号分隔"
+            className="h-9 min-w-0 flex-1 rounded-full border bg-transparent px-4 text-sm outline-none"
+            style={{
+              borderColor: "var(--md-outline)",
+              color: "var(--md-on-surface-variant)",
+            }}
           />
-        </div>
-
-        <div className="mt-3 flex items-center gap-1 border-t border-gray-100 pt-2">
+          <div
+            className="flex items-center gap-0.5 rounded-full p-1"
+            style={{ background: "var(--md-surface-container)" }}
+          >
           <button
             onClick={() => insertMarkdown("**", "**", "粗体")}
             className="btn-icon"
@@ -335,12 +373,27 @@ export default function NoteEditor({ note }: NoteEditorProps) {
             onChange={handleImageSelect}
             className="hidden"
           />
+          </div>
+        </div>
+      </header>
+
+      <div
+        className="grid h-10 grid-cols-2 border-b text-xs font-semibold"
+        style={{
+          borderColor: "var(--md-outline-variant)",
+          color: "var(--md-on-surface-variant)",
+        }}
+      >
+        <div className="flex items-center px-6">MARKDOWN</div>
+        <div
+          className="flex items-center border-l px-8"
+          style={{ borderColor: "var(--md-outline-variant)" }}
+        >
+          预览
         </div>
       </div>
 
-      {/* Editor */}
-      <div className="flex-1 flex min-h-0">
-        {/* Markdown input */}
+      <div className="flex min-h-0 flex-1">
         <textarea
           ref={textareaRef}
           value={content}
@@ -350,12 +403,11 @@ export default function NoteEditor({ note }: NoteEditorProps) {
           spellCheck={false}
         />
 
-        {/* Preview */}
         <div
           className="markdown-preview prose prose-sm max-w-none"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       </div>
-    </div>
+    </section>
   );
 }

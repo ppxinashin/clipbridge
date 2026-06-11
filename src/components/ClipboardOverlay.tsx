@@ -1,15 +1,26 @@
-import { useState, useEffect, useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { Search, Pin, FileText, Image as ImageIcon } from "lucide-react";
-import { useApp, ClipboardItem } from "../context/AppContext";
+import {
+  Check,
+  Clipboard,
+  FileText,
+  Image as ImageIcon,
+  Moon,
+  Pin,
+  Search,
+  Sun,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ClipboardItem, useApp } from "../context/AppContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function ClipboardOverlay() {
   const { state, copyClipboardItem, pinToNote } = useApp();
+  const { resolvedMode, setMode } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [feedback, setFeedback] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
 
   const filteredItems = state.clipboardHistory.filter((item) => {
     if (!searchQuery) return true;
@@ -20,56 +31,40 @@ export default function ClipboardOverlay() {
     );
   });
 
-  // Focus input on mount
   useEffect(() => {
-    setTimeout(() => {
-      inputRef.current?.focus();
-      console.log("[Overlay] Focused input");
-    }, 50);
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 50);
     setSelectedIndex(0);
+    return () => window.clearTimeout(timer);
   }, []);
 
-  // Keyboard navigation
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      console.log("[Overlay] Key pressed:", e.key);
-
-      if (e.key === "Escape") {
-        e.preventDefault();
-        hideWindow();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        void hideWindow();
         return;
       }
 
       if (filteredItems.length === 0) return;
 
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setSelectedIndex((prev) => {
-          const next = Math.min(prev + 1, filteredItems.length - 1);
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setSelectedIndex((previous) => {
+          const next = Math.min(previous + 1, filteredItems.length - 1);
           scrollToIndex(next);
           return next;
         });
-        return;
-      }
-
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setSelectedIndex((prev) => {
-          const next = Math.max(prev - 1, 0);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setSelectedIndex((previous) => {
+          const next = Math.max(previous - 1, 0);
           scrollToIndex(next);
           return next;
         });
-        return;
-      }
-
-      if (e.key === "Enter") {
-        e.preventDefault();
-        console.log("[Overlay] Enter pressed, selected:", selectedIndex);
+      } else if (event.key === "Enter") {
+        event.preventDefault();
         const item = filteredItems[selectedIndex];
-        if (item) {
-          doCopy(item);
-        }
-        return;
+        if (item) void doCopy(item);
       }
     };
 
@@ -77,141 +72,241 @@ export default function ClipboardOverlay() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [filteredItems, selectedIndex]);
 
-  const scrollToIndex = (index: number) => {
-    const element = document.getElementById(`clip-item-${index}`);
-    element?.scrollIntoView({ block: "nearest" });
-  };
+  function scrollToIndex(index: number) {
+    document
+      .getElementById(`clip-item-${index}`)
+      ?.scrollIntoView({ block: "nearest" });
+  }
 
-  const doCopy = async (item: ClipboardItem) => {
-    console.log("[Overlay] Copying:", item.id);
+  async function doCopy(item: ClipboardItem) {
     try {
       await copyClipboardItem(item.id);
-      setFeedback("已复制!");
-      setTimeout(() => hideWindow(), 100);
-    } catch (err) {
-      console.error("[Overlay] Copy failed:", err);
+      setFeedback("已复制到剪贴板");
+      window.setTimeout(() => void hideWindow(), 140);
+    } catch (error) {
+      console.error("Copy failed:", error);
       setFeedback("复制失败");
     }
-  };
+  }
 
-  const doPin = async (e: React.MouseEvent, item: ClipboardItem) => {
-    e.stopPropagation();
+  async function doPin(event: React.MouseEvent, item: ClipboardItem) {
+    event.stopPropagation();
     if (item.is_pinned) return;
-    console.log("[Overlay] Pinning:", item.id);
+
     try {
       await pinToNote(item.id);
-      setFeedback("已钉住!");
-    } catch (err) {
-      console.error("[Overlay] Pin failed:", err);
+      setFeedback("已转为便签");
+      window.setTimeout(() => setFeedback(""), 1600);
+    } catch (error) {
+      console.error("Pin failed:", error);
+      setFeedback("操作失败");
     }
-  };
+  }
 
-  const hideWindow = async () => {
-    const win = getCurrentWindow();
-    await win.hide();
-  };
+  async function hideWindow() {
+    await getCurrentWindow().hide();
+  }
 
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp * 1000);
-    return date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
-  };
+  function formatTime(timestamp: number) {
+    return new Date(timestamp * 1000).toLocaleTimeString("zh-CN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "Image": return <ImageIcon className="w-4 h-4 text-purple-500" />;
-      case "File": return <FileText className="w-4 h-4 text-blue-500" />;
-      default: return <FileText className="w-4 h-4 text-gray-400" />;
-    }
-  };
+  function getIcon(item: ClipboardItem) {
+    const Icon = item.item_type === "Image" ? ImageIcon : FileText;
+    return (
+      <div
+        className="flex h-10 w-10 flex-none items-center justify-center rounded-xl"
+        style={{
+          background: "var(--md-primary-container)",
+          color: "var(--md-on-primary-container)",
+        }}
+      >
+        <Icon className="h-5 w-5" />
+      </div>
+    );
+  }
 
   return (
-    <div className="h-screen flex flex-col bg-white/95 backdrop-blur">
-      {/* Header */}
-      <div className="p-3 border-b border-gray-200">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setSelectedIndex(0);
-            }}
-            placeholder="搜索剪贴板..."
-            className="w-full pl-9 pr-3 py-2 bg-gray-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-      </div>
+    <main
+      className="flex h-screen flex-col overflow-hidden p-2"
+      style={{ background: "transparent" }}
+    >
+      <section
+        className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border"
+        style={{
+          background: "var(--md-surface)",
+          borderColor: "var(--md-outline-variant)",
+          boxShadow: "0 8px 28px var(--md-shadow)",
+        }}
+      >
+        <header className="px-4 pb-3 pt-4">
+          <div className="mb-3 flex items-center gap-3">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-xl"
+              style={{
+                background: "var(--md-primary)",
+                color: "var(--md-on-primary)",
+              }}
+            >
+              <Clipboard className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base font-semibold">剪贴板</h1>
+              <p
+                className="text-xs"
+                style={{ color: "var(--md-on-surface-variant)" }}
+              >
+                {filteredItems.length} 条历史记录
+              </p>
+            </div>
+            <button
+              onClick={() => setMode(resolvedMode === "dark" ? "light" : "dark")}
+              className="md-icon-button"
+              title={resolvedMode === "dark" ? "切换到浅色" : "切换到深色"}
+            >
+              {resolvedMode === "dark" ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </button>
+            <button
+              onClick={() => void hideWindow()}
+              className="md-icon-button"
+              title="关闭"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-      {/* Feedback */}
+          <div className="relative">
+            <Search
+              className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2"
+              style={{ color: "var(--md-on-surface-variant)" }}
+            />
+            <input
+              ref={inputRef}
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                setSelectedIndex(0);
+              }}
+              placeholder="搜索剪贴板历史"
+              className="md-search"
+            />
+          </div>
+        </header>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
+          {filteredItems.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <div
+                className="mb-3 flex h-16 w-16 items-center justify-center rounded-full"
+                style={{
+                  background: "var(--md-secondary-container)",
+                  color: "var(--md-on-secondary-container)",
+                }}
+              >
+                <Clipboard className="h-7 w-7" />
+              </div>
+              <div className="font-semibold">暂无记录</div>
+              <div
+                className="mt-1 text-xs"
+                style={{ color: "var(--md-on-surface-variant)" }}
+              >
+                复制内容后会出现在这里
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {filteredItems.map((item, index) => {
+                const selected = index === selectedIndex;
+                const text =
+                  item.content_text?.slice(0, 90).replace(/\n/g, " ") ||
+                  (item.item_type === "Image" ? "图片" : "文件");
+
+                return (
+                  <article
+                    key={item.id}
+                    id={`clip-item-${index}`}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                    onClick={() => void doCopy(item)}
+                    className="group flex min-h-[72px] cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 transition-colors"
+                    style={{
+                      background: selected
+                        ? "var(--md-secondary-container)"
+                        : "transparent",
+                      color: selected
+                        ? "var(--md-on-secondary-container)"
+                        : "var(--md-on-surface)",
+                    }}
+                  >
+                    {getIcon(item)}
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium">{text}</div>
+                      <div
+                        className="mt-1 flex items-center gap-2 text-xs"
+                        style={{ color: "var(--md-on-surface-variant)" }}
+                      >
+                        <span className="truncate">
+                          {item.source_app || "未知应用"}
+                        </span>
+                        <span>·</span>
+                        <span className="flex-none">
+                          {formatTime(item.created_at)}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(event) => void doPin(event, item)}
+                      disabled={item.is_pinned}
+                      className={`md-icon-button !h-9 !w-9 !flex-[0_0_36px] ${
+                        item.is_pinned ? "active" : ""
+                      }`}
+                      title={item.is_pinned ? "已转为便签" : "转为便签"}
+                    >
+                      {item.is_pinned ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Pin className="h-4 w-4" />
+                      )}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <footer
+          className="flex h-11 flex-none items-center justify-between border-t px-4 text-[11px]"
+          style={{
+            borderColor: "var(--md-outline-variant)",
+            background: "var(--md-surface-container-low)",
+            color: "var(--md-on-surface-variant)",
+          }}
+        >
+          <span>↑↓ 选择</span>
+          <span>Enter 复制</span>
+          <span>Esc 关闭</span>
+        </footer>
+      </section>
+
       {feedback && (
-        <div className="px-3 py-1 bg-green-100 text-green-700 text-xs text-center">
+        <div
+          className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full px-4 py-2 text-xs font-medium"
+          style={{
+            background: "var(--md-inverse-surface)",
+            color: "var(--md-inverse-on-surface)",
+            boxShadow: "0 2px 8px var(--md-shadow)",
+          }}
+        >
           {feedback}
         </div>
       )}
-
-      {/* List */}
-      <div ref={listRef} className="flex-1 overflow-y-auto">
-        {filteredItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400">
-            <p className="text-sm">暂无记录</p>
-          </div>
-        ) : (
-          filteredItems.map((item, index) => {
-            const isSelected = index === selectedIndex;
-            const text = item.content_text?.slice(0, 60).replace(/\n/g, " ") || "(图片/文件)";
-
-            return (
-              <div
-                key={item.id}
-                id={`clip-item-${index}`}
-                onClick={() => {
-                  setSelectedIndex(index);
-                  doCopy(item);
-                }}
-                className={`flex items-start gap-3 px-3 py-3 cursor-pointer border-b border-gray-100 transition-colors ${
-                  isSelected ? "bg-blue-50" : "hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex-shrink-0 mt-0.5">{getIcon(item.item_type)}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-gray-800 truncate">{text}</div>
-                  <div className="text-xs text-gray-400 mt-1 flex items-center gap-2">
-                    <span>{item.source_app || "Unknown"}</span>
-                    <span>·</span>
-                    <span>{formatTime(item.created_at)}</span>
-                  </div>
-                </div>
-                <button
-                  onClick={(e) => doPin(e, item)}
-                  disabled={item.is_pinned}
-                  className={`flex-shrink-0 p-1.5 rounded-md transition-colors ${
-                    isSelected || item.is_pinned ? "opacity-100" : "opacity-0 hover:opacity-100"
-                  } ${
-                    item.is_pinned
-                      ? "text-primary-600"
-                      : "hover:bg-blue-100 hover:text-blue-600"
-                  }`}
-                  title={item.is_pinned ? "已转为便签" : "钉住到便签"}
-                >
-                  <Pin className={`w-4 h-4 ${item.is_pinned ? "fill-current" : ""}`} />
-                </button>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      {/* Footer */}
-      <div className="px-3 py-2 border-t border-gray-200 bg-gray-50">
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>
-            {filteredItems.length} 条 · 选中 #{selectedIndex + 1}
-          </span>
-          <span>↑↓ 选择 · Enter 复制 · Esc 关闭</span>
-        </div>
-      </div>
-    </div>
+    </main>
   );
 }

@@ -72,5 +72,6 @@ target/release/bundle/
 
 ## 退出程序
 
-开发模式下，在运行 `npm run tauri:dev` 的终端按 `Ctrl+C` 停止程序。
+应用会常驻 macOS 菜单栏或 Windows 通知区域。点击托盘图标可恢复主窗口，右键可选择「打开 ClipBridge」「打开剪贴板」或「退出」。
 
+关闭主窗口只会隐藏到托盘；要完全退出，请使用托盘菜单中的「退出」。开发模式下也可以在运行 `npm run tauri:dev` 的终端按 `Ctrl+C` 停止程序。

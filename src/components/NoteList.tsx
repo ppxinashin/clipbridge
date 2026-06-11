@@ -1,7 +1,13 @@
-import { List, Grid, Search, Copy, Trash2 } from "lucide-react";
-import { Note } from "../context/AppContext";
-import { useApp } from "../context/AppContext";
+import {
+  Copy,
+  Grid2X2,
+  List,
+  Search,
+  StickyNote,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
+import { Note, useApp } from "../context/AppContext";
 
 interface NoteListProps {
   notes: Note[];
@@ -10,15 +16,6 @@ interface NoteListProps {
   viewMode: "list" | "grid";
   onChangeViewMode: (mode: "list" | "grid") => void;
 }
-
-const PRESET_COLORS: Record<string, string> = {
-  "#fef3c7": "bg-yellow-100 border-yellow-200",
-  "#d1fae5": "bg-green-100 border-green-200",
-  "#dbeafe": "bg-blue-100 border-blue-200",
-  "#f3e8ff": "bg-purple-100 border-purple-200",
-  "#fee2e2": "bg-red-100 border-red-200",
-  "#f3f4f6": "bg-gray-100 border-gray-200",
-};
 
 export default function NoteList({
   notes,
@@ -40,165 +37,226 @@ export default function NoteList({
     );
   });
 
-  function formatDate(timestamp: number): string {
-    const date = new Date(timestamp * 1000);
-    return date.toLocaleDateString("zh-CN", {
+  function formatDate(timestamp: number) {
+    return new Date(timestamp * 1000).toLocaleDateString("zh-CN", {
       month: "short",
       day: "numeric",
     });
   }
 
-  function getNotePreview(note: Note): string {
-    return note.content_markdown.slice(0, 100).replace(/#/g, "").trim() || "...";
+  function getNotePreview(note: Note) {
+    return (
+      note.content_markdown
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, "[图片]")
+        .replace(/[#>*_`-]/g, "")
+        .slice(0, 120)
+        .trim() || "空白便签"
+    );
   }
 
-  function getNoteColorClass(color: string | null): string {
-    if (!color) return "bg-white border-gray-200";
-    return PRESET_COLORS[color] || "bg-white border-gray-200";
+  function noteSurface(note: Note, selected: boolean) {
+    if (selected) {
+      return {
+        background: "var(--md-secondary-container)",
+        color: "var(--md-on-secondary-container)",
+      };
+    }
+    if (note.color) {
+      return {
+        background: `${note.color}55`,
+      };
+    }
+    return { background: "var(--md-surface-container-low)" };
   }
 
-  async function handleCopyNote(e: React.MouseEvent, note: Note) {
-    e.stopPropagation();
+  async function handleCopyNote(event: React.MouseEvent, note: Note) {
+    event.stopPropagation();
     await copyToClipboard(note.content_markdown);
   }
 
-  async function handleDeleteNote(e: React.MouseEvent, noteId: string) {
-    e.stopPropagation();
+  async function handleDeleteNote(event: React.MouseEvent, noteId: string) {
+    event.stopPropagation();
     if (confirm("确定要删除这个便签吗？")) {
       await deleteNote(noteId);
     }
   }
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-700">
-            便签 ({filteredNotes.length})
-          </h2>
-          <div className="flex items-center gap-1">
+    <section
+      className="flex h-full w-[344px] flex-none flex-col border-l border-r"
+      style={{
+        background: "var(--md-surface)",
+        borderColor: "var(--md-outline-variant)",
+      }}
+    >
+      <header className="px-4 pb-3 pt-5">
+        <div className="mb-4 flex h-10 items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold">便签</h1>
+            <p
+              className="text-xs"
+              style={{ color: "var(--md-on-surface-variant)" }}
+            >
+              {filteredNotes.length} 条记录
+            </p>
+          </div>
+          <div
+            className="flex rounded-full p-1"
+            style={{ background: "var(--md-surface-container)" }}
+          >
             <button
               onClick={() => onChangeViewMode("list")}
-              className={`p-1.5 rounded ${
-                viewMode === "list" ? "bg-gray-100 text-gray-700" : "text-gray-400"
+              className={`md-icon-button !h-8 !w-8 !flex-[0_0_32px] ${
+                viewMode === "list" ? "active" : ""
               }`}
+              title="列表视图"
             >
-              <List className="w-4 h-4" />
+              <List className="h-4 w-4" />
             </button>
             <button
               onClick={() => onChangeViewMode("grid")}
-              className={`p-1.5 rounded ${
-                viewMode === "grid" ? "bg-gray-100 text-gray-700" : "text-gray-400"
+              className={`md-icon-button !h-8 !w-8 !flex-[0_0_32px] ${
+                viewMode === "grid" ? "active" : ""
               }`}
+              title="网格视图"
             >
-              <Grid className="w-4 h-4" />
+              <Grid2X2 className="h-4 w-4" />
             </button>
           </div>
         </div>
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search
+            className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2"
+            style={{ color: "var(--md-on-surface-variant)" }}
+          />
           <input
-            type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="搜索便签..."
-            className="w-full pl-9 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary-500"
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="搜索便签"
+            className="md-search"
           />
         </div>
-      </div>
+      </header>
 
-      {/* Note List */}
-      <div className="flex-1 overflow-y-auto">
-        {viewMode === "list" ? (
-          <div className="divide-y divide-gray-100">
-            {filteredNotes.map((note) => (
-              <div
-                key={note.id}
-                onClick={() => onSelectNote(note)}
-                className={`p-3 cursor-pointer transition-colors ${
-                  selectedNote?.id === note.id ? "bg-primary-50" : "hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-gray-800 truncate">
-                      {note.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                      {getNotePreview(note)}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      {note.tags.slice(0, 3).map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-xs text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                      <span className="text-xs text-gray-400">
-                        {formatDate(note.updated_at)}
-                      </span>
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
+        {filteredNotes.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+            <div
+              className="mb-4 flex h-16 w-16 items-center justify-center rounded-full"
+              style={{
+                background: "var(--md-secondary-container)",
+                color: "var(--md-on-secondary-container)",
+              }}
+            >
+              <StickyNote className="h-7 w-7" />
+            </div>
+            <div className="font-semibold">没有找到便签</div>
+            <div
+              className="mt-1 text-sm"
+              style={{ color: "var(--md-on-surface-variant)" }}
+            >
+              尝试更换关键词或筛选条件
+            </div>
+          </div>
+        ) : viewMode === "list" ? (
+          <div className="space-y-2">
+            {filteredNotes.map((note) => {
+              const selected = selectedNote?.id === note.id;
+              return (
+                <article
+                  key={note.id}
+                  onClick={() => onSelectNote(note)}
+                  className="group cursor-pointer rounded-xl p-4 transition-[filter,box-shadow] hover:brightness-[0.98]"
+                  style={{
+                    ...noteSurface(note, selected),
+                    boxShadow: selected
+                      ? "0 1px 3px var(--md-shadow)"
+                      : "none",
+                  }}
+                >
+                  <div className="flex items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="truncate text-sm font-semibold">
+                        {note.title || "无标题"}
+                      </h2>
+                      <p
+                        className="mt-1.5 line-clamp-2 text-xs leading-5"
+                        style={{ color: "var(--md-on-surface-variant)" }}
+                      >
+                        {getNotePreview(note)}
+                      </p>
+                    </div>
+                    <div className="flex opacity-0 transition-opacity group-hover:opacity-100">
+                      <button
+                        onClick={(event) => handleCopyNote(event, note)}
+                        className="md-icon-button !h-8 !w-8 !flex-[0_0_32px]"
+                        title="复制全文"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(event) => handleDeleteNote(event, note.id)}
+                        className="md-icon-button danger !h-8 !w-8 !flex-[0_0_32px]"
+                        title="删除便签"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <button
-                      onClick={(e) => handleCopyNote(e, note)}
-                      className="btn-icon"
-                      title="复制全文"
+                  <div className="mt-3 flex min-w-0 items-center gap-2">
+                    {note.tags.slice(0, 2).map((tag) => (
+                      <span key={tag} className="md-chip !min-h-6 !px-2">
+                        #{tag}
+                      </span>
+                    ))}
+                    <span
+                      className="ml-auto flex-none text-xs"
+                      style={{ color: "var(--md-on-surface-variant)" }}
                     >
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={(e) => handleDeleteNote(e, note.id)}
-                      className="btn-icon text-red-400 hover:text-red-600 hover:bg-red-50"
-                      title="删除"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                      {formatDate(note.updated_at)}
+                    </span>
                   </div>
-                </div>
-              </div>
-            ))}
+                </article>
+              );
+            })}
           </div>
         ) : (
-          <div className="p-4 grid grid-cols-2 gap-3">
-            {filteredNotes.map((note) => (
-              <div
-                key={note.id}
-                onClick={() => onSelectNote(note)}
-                className={`note-card ${getNoteColorClass(note.color)} ${
-                  selectedNote?.id === note.id ? "ring-2 ring-primary-500" : ""
-                }`}
-              >
-                <h3 className="text-sm font-medium text-gray-800 line-clamp-1">
-                  {note.title}
-                </h3>
-                <p className="text-xs text-gray-500 mt-2 line-clamp-3">
-                  {getNotePreview(note)}
-                </p>
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-xs text-gray-400">
+          <div className="grid grid-cols-2 gap-2">
+            {filteredNotes.map((note) => {
+              const selected = selectedNote?.id === note.id;
+              return (
+                <article
+                  key={note.id}
+                  onClick={() => onSelectNote(note)}
+                  className="min-h-[156px] cursor-pointer rounded-xl p-4 transition-[filter,box-shadow] hover:brightness-[0.98]"
+                  style={{
+                    ...noteSurface(note, selected),
+                    boxShadow: selected
+                      ? "0 1px 3px var(--md-shadow)"
+                      : "none",
+                  }}
+                >
+                  <h2 className="line-clamp-1 text-sm font-semibold">
+                    {note.title || "无标题"}
+                  </h2>
+                  <p
+                    className="mt-2 line-clamp-4 text-xs leading-5"
+                    style={{ color: "var(--md-on-surface-variant)" }}
+                  >
+                    {getNotePreview(note)}
+                  </p>
+                  <div
+                    className="mt-3 text-xs"
+                    style={{ color: "var(--md-on-surface-variant)" }}
+                  >
                     {formatDate(note.updated_at)}
-                  </span>
-                  {note.tags.length > 0 && (
-                    <span className="text-xs text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded">
-                      #{note.tags[0]}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {filteredNotes.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-48 text-gray-400">
-            <p className="text-sm">没有找到便签</p>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

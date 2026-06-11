@@ -17,8 +17,10 @@ export default function MainWindow() {
   });
 
   return (
-    <div className="h-screen flex bg-white">
-      {/* Left Sidebar */}
+    <main
+      className="flex h-screen min-w-[900px] overflow-hidden"
+      style={{ background: "var(--md-surface)" }}
+    >
       <Sidebar
         selectedTag={selectedTag}
         onSelectTag={setSelectedTag}
@@ -26,7 +28,6 @@ export default function MainWindow() {
         onSelectColor={setSelectedColor}
       />
 
-      {/* Middle: Note List */}
       <NoteList
         notes={filteredNotes}
         selectedNote={state.selectedNote}
@@ -35,8 +36,7 @@ export default function MainWindow() {
         onChangeViewMode={setViewMode}
       />
 
-      {/* Right: Editor */}
       <NoteEditor note={state.selectedNote} />
-    </div>
+    </main>
   );
 }

@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import MainWindow from "./components/MainWindow";
 import ClipboardOverlay from "./components/ClipboardOverlay";
 import { AppProvider } from "./context/AppContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 function App() {
   const [windowLabel, setWindowLabel] = useState<string>("main"); // Default to main
@@ -28,15 +29,17 @@ function App() {
   }, []);
 
   return (
-    <AppProvider>
-      {windowLabel === "main" && <MainWindow />}
-      {windowLabel === "clipboard" && <ClipboardOverlay />}
-      {windowLabel !== "main" && windowLabel !== "clipboard" && (
-        <div className="flex items-center justify-center h-screen">
-          <p>Loading...</p>
-        </div>
-      )}
-    </AppProvider>
+    <ThemeProvider>
+      <AppProvider>
+        {windowLabel === "main" && <MainWindow />}
+        {windowLabel === "clipboard" && <ClipboardOverlay />}
+        {windowLabel !== "main" && windowLabel !== "clipboard" && (
+          <div className="flex items-center justify-center h-screen">
+            <p>Loading...</p>
+          </div>
+        )}
+      </AppProvider>
+    </ThemeProvider>
   );
 }
 
