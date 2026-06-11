@@ -1,6 +1,6 @@
 [package]
 name = "clipbridge"
-version = "0.1.0"
+version = "0.1.1"
 description = "ClipBridge - 轻量级剪贴板历史 + Markdown 便签"
 authors = ["ClipBridge Team"]
 edition = "2021"

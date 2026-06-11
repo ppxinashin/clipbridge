@@ -49,7 +49,7 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: ClipBridge v__VERSION__
           releaseBody: |
-            ClipBridge 0.1.0 首个桌面版本。
+            ClipBridge __VERSION__ 桌面版本。
 
             - Material Design 3 界面、暗黑模式与可调主题色
             - Option/Alt + V 呼出剪贴板历史
@@ -58,7 +58,9 @@ jobs:
 
             **macOS 安装提示**
 
-            当前版本尚未进行 Apple Developer ID 签名和公证。如果系统提示“ClipBridge 已损坏，无法打开”，请确认安装包来自本 Release，将应用拖入“应用程序”后执行：
+            macOS 版本使用免费的 Ad-hoc 签名，但尚未进行 Apple Developer ID 签名和公证。请确认安装包来自本 Release，将应用拖入“应用程序”；首次打开若提示无法验证开发者，请进入“系统设置 → 隐私与安全性”并点击“仍要打开”。
+
+            如果系统仍提示“ClipBridge 已损坏，无法打开”，执行：
 
             ```bash
             xattr -dr com.apple.quarantine "/Applications/ClipBridge.app"

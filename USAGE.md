@@ -8,14 +8,16 @@
 
 下载 `ClipBridge_*_aarch64.dmg`，打开后将 `ClipBridge.app` 拖入“应用程序”文件夹。
 
-由于当前版本尚未进行 Apple Developer ID 签名和公证，macOS 可能提示“ClipBridge 已损坏，无法打开”。确认文件来自上述官方 Release 后，在终端执行：
+macOS 版本使用免费的 Ad-hoc 签名，但尚未进行 Apple Developer ID 签名和公证。首次打开若提示无法验证开发者，请进入“系统设置 → 隐私与安全性”，找到 ClipBridge 提示并点击“仍要打开”。
+
+确认文件来自上述官方 Release，但系统仍提示“ClipBridge 已损坏，无法打开”时，在终端执行：
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/ClipBridge.app"
 open "/Applications/ClipBridge.app"
 ```
 
-这只解除 ClipBridge 的下载隔离，不会禁用系统的 Gatekeeper。后续版本完成 Apple 签名和公证后将不再需要此步骤。
+这只解除 ClipBridge 的下载隔离，不会禁用系统的 Gatekeeper。Ad-hoc 签名无法替代 Apple 公证；完成 Developer ID 签名和公证后才可彻底省略首次授权。
 
 ### Windows x64
 
