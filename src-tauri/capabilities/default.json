@@ -1,0 +1,33 @@
+{
+  "identifier": "default",
+  "windows": ["main", "clipboard"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-hide",
+    "core:window:allow-show",
+    "core:window:allow-set-focus",
+    "shell:allow-open",
+    "global-shortcut:allow-is-registered",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister",
+    "global-shortcut:allow-unregister-all",
+    "notification:default"
+  ],
+  "commands": {
+    "allow": [
+      "get_clipboard_history",
+      "copy_to_clipboard",
+      "copy_clipboard_item",
+      "pin_to_note",
+      "get_notes",
+      "save_note",
+      "delete_note",
+      "export_notes",
+      "import_notes",
+      "show_clipboard_window",
+      "hide_clipboard_window",
+      "get_global_shortcut",
+      "set_global_shortcut"
+    ]
+  }
+}

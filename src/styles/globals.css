@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+
+  body {
+    @apply bg-white text-gray-900 antialiased;
+    @apply font-sans;
+  }
+}
+
+@layer components {
+  .window-overlay {
+    @apply bg-white/95 backdrop-blur-sm;
+    @apply border border-gray-200/50;
+    @apply shadow-2xl rounded-lg;
+    @apply overflow-hidden;
+  }
+
+  .search-input {
+    @apply w-full px-4 py-2.5;
+    @apply bg-gray-50 border border-gray-200 rounded-lg;
+    @apply text-sm placeholder-gray-400;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500;
+    @apply transition-all duration-200;
+  }
+
+  .clip-item {
+    @apply flex items-start gap-3 p-3;
+    @apply rounded-lg cursor-pointer;
+    @apply hover:bg-gray-50;
+    @apply transition-colors duration-150;
+  }
+
+  .clip-item.active {
+    @apply bg-primary-50;
+  }
+
+  .clip-preview {
+    @apply text-sm text-gray-700 line-clamp-2;
+    word-break: break-word;
+  }
+
+  .clip-meta {
+    @apply text-xs text-gray-400 mt-1;
+    @apply flex items-center gap-2;
+  }
+
+  .btn-icon {
+    @apply p-1.5 rounded-md;
+    @apply text-gray-400 hover:text-gray-600 hover:bg-gray-100;
+    @apply transition-colors duration-150;
+  }
+
+  .note-card {
+    @apply p-4 rounded-lg border;
+    @apply cursor-pointer transition-all duration-150;
+    @apply hover:shadow-md;
+  }
+
+  .editor-pane {
+    @apply flex-1 min-h-0;
+    @apply flex flex-col;
+  }
+
+  .markdown-input {
+    @apply flex-1 w-full p-4;
+    @apply bg-white resize-none outline-none;
+    @apply font-mono text-sm leading-relaxed;
+    @apply border-r border-gray-200;
+  }
+
+  .markdown-preview {
+    @apply flex-1 p-4 overflow-auto;
+    @apply prose prose-sm max-w-none;
+  }
+
+  /* Scrollbar styles */
+  ::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+}
+
+/* Markdown preview styles */
+.prose h1 {
+  @apply text-2xl font-bold text-gray-900 mb-4;
+}
+
+.prose h2 {
+  @apply text-xl font-semibold text-gray-800 mb-3 mt-6;
+}
+
+.prose h3 {
+  @apply text-lg font-semibold text-gray-800 mb-2 mt-4;
+}
+
+.prose p {
+  @apply text-gray-700 mb-4 leading-relaxed;
+}
+
+.prose ul {
+  @apply list-disc list-inside mb-4 space-y-1;
+}
+
+.prose ol {
+  @apply list-decimal list-inside mb-4 space-y-1;
+}
+
+.prose li {
+  @apply text-gray-700;
+}
+
+.prose code {
+  @apply px-1.5 py-0.5 bg-gray-100 rounded text-sm font-mono text-gray-800;
+}
+
+.prose pre {
+  @apply p-4 bg-gray-900 rounded-lg overflow-x-auto mb-4;
+}
+
+.prose pre code {
+  @apply bg-transparent text-gray-100 p-0;
+}
+
+.prose blockquote {
+  @apply pl-4 border-l-4 border-gray-300 italic text-gray-600 mb-4;
+}
+
+.prose a {
+  @apply text-primary-600 hover:underline;
+}
+
+.prose img {
+  @apply max-w-full rounded-lg shadow-sm my-4;
+}
+
+.prose hr {
+  @apply my-6 border-gray-200;
+}
+
+.prose table {
+  @apply w-full border-collapse mb-4;
+}
+
+.prose th,
+.prose td {
+  @apply px-3 py-2 border border-gray-200 text-left;
+}
+
+.prose th {
+  @apply bg-gray-50 font-semibold text-gray-700;
+}
+
+/* Task list */
+.task-list-item {
+  @apply flex items-center gap-2;
+}
+
+.task-list-item input[type="checkbox"] {
+  @apply w-4 h-4 rounded border-gray-300 text-primary-600;
+}
