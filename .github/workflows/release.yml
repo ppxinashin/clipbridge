@@ -42,7 +42,7 @@ jobs:
         run: npm ci
 
       - name: Build and publish
-        uses: tauri-apps/tauri-action@v1
+        uses: tauri-apps/tauri-action@v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -60,6 +60,4 @@ jobs:
           releaseDraft: false
           prerelease: false
           generateReleaseNotes: true
-          uploadWorkflowArtifacts: true
-          releaseAssetNamePattern: ClipBridge_[version]_[platform]_[arch]_[bundle][ext]
           args: ${{ matrix.args }}
